@@ -255,10 +255,10 @@ func (c *PipelinesCollector) collectPipelineRuns(ch chan<- prometheus.Metric) er
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, pipelineID, pipelineName sql.NullString
+		var workspaceID, pipelineID, pipelineName, tagKey, tagValue sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &tagKey, &tagValue, &count); err != nil {
 			return fmt.Errorf("failed to scan pipeline runs row: %w", err)
 		}
 
@@ -270,6 +270,8 @@ func (c *PipelinesCollector) collectPipelineRuns(ch chan<- prometheus.Metric) er
 				workspaceID.String,
 				pipelineID.String,
 				pipelineName.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}
@@ -291,10 +293,10 @@ func (c *PipelinesCollector) collectPipelineRunStatus(ch chan<- prometheus.Metri
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, pipelineID, pipelineName, status sql.NullString
+		var workspaceID, pipelineID, pipelineName, tagKey, tagValue, status sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &status, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &tagKey, &tagValue, &status, &count); err != nil {
 			return fmt.Errorf("failed to scan pipeline run status row: %w", err)
 		}
 
@@ -306,6 +308,8 @@ func (c *PipelinesCollector) collectPipelineRunStatus(ch chan<- prometheus.Metri
 				workspaceID.String,
 				pipelineID.String,
 				pipelineName.String,
+				tagKey.String,
+				tagValue.String,
 				status.String,
 			)
 		}
@@ -328,10 +332,10 @@ func (c *PipelinesCollector) collectPipelineRunDuration(ch chan<- prometheus.Met
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, pipelineID, pipelineName sql.NullString
+		var workspaceID, pipelineID, pipelineName, tagKey, tagValue sql.NullString
 		var p50, p95, p99 sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &p50, &p95, &p99); err != nil {
+		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &tagKey, &tagValue, &p50, &p95, &p99); err != nil {
 			return fmt.Errorf("failed to scan pipeline run duration row: %w", err)
 		}
 
@@ -343,6 +347,8 @@ func (c *PipelinesCollector) collectPipelineRunDuration(ch chan<- prometheus.Met
 				workspaceID.String,
 				pipelineID.String,
 				pipelineName.String,
+				tagKey.String,
+				tagValue.String,
 				"0.50",
 			)
 		}
@@ -354,6 +360,8 @@ func (c *PipelinesCollector) collectPipelineRunDuration(ch chan<- prometheus.Met
 				workspaceID.String,
 				pipelineID.String,
 				pipelineName.String,
+				tagKey.String,
+				tagValue.String,
 				"0.95",
 			)
 		}
@@ -365,6 +373,8 @@ func (c *PipelinesCollector) collectPipelineRunDuration(ch chan<- prometheus.Met
 				workspaceID.String,
 				pipelineID.String,
 				pipelineName.String,
+				tagKey.String,
+				tagValue.String,
 				"0.99",
 			)
 		}
@@ -387,10 +397,10 @@ func (c *PipelinesCollector) collectPipelineRetryEvents(ch chan<- prometheus.Met
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, pipelineID, pipelineName sql.NullString
+		var workspaceID, pipelineID, pipelineName, tagKey, tagValue sql.NullString
 		var retries sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &retries); err != nil {
+		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &tagKey, &tagValue, &retries); err != nil {
 			return fmt.Errorf("failed to scan pipeline retry events row: %w", err)
 		}
 
@@ -402,6 +412,8 @@ func (c *PipelinesCollector) collectPipelineRetryEvents(ch chan<- prometheus.Met
 				workspaceID.String,
 				pipelineID.String,
 				pipelineName.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}
@@ -423,10 +435,10 @@ func (c *PipelinesCollector) collectPipelineFreshnessLag(ch chan<- prometheus.Me
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, pipelineID, pipelineName sql.NullString
+		var workspaceID, pipelineID, pipelineName, tagKey, tagValue sql.NullString
 		var lagSeconds sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &lagSeconds); err != nil {
+		if err := rows.Scan(&workspaceID, &pipelineID, &pipelineName, &tagKey, &tagValue, &lagSeconds); err != nil {
 			return fmt.Errorf("failed to scan pipeline freshness lag row: %w", err)
 		}
 
@@ -438,6 +450,8 @@ func (c *PipelinesCollector) collectPipelineFreshnessLag(ch chan<- prometheus.Me
 				workspaceID.String,
 				pipelineID.String,
 				pipelineName.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}

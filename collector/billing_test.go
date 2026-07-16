@@ -34,10 +34,10 @@ func TestBillingCollector_CollectBillingDBUs(t *testing.T) {
 	defer func() { _ = db.Close() }()
 
 	// Set up mock expectations
-	rows := sqlmock.NewRows([]string{"workspace_id", "sku_name", "dbus_total"}).
-		AddRow("87654321", "STANDARD_ALL_PURPOSE_COMPUTE", 125.5).
-		AddRow("87654321", "PREMIUM_JOBS_COMPUTE", 450.25).
-		AddRow("87654322", "STANDARD_ALL_PURPOSE_COMPUTE", 89.75)
+	rows := sqlmock.NewRows([]string{"workspace_id", "sku_name", "tag_key", "tag_value", "dbus_total"}).
+		AddRow("87654321", "STANDARD_ALL_PURPOSE_COMPUTE", "environment", "production", 125.5).
+		AddRow("87654321", "PREMIUM_JOBS_COMPUTE", "team", "platform", 450.25).
+		AddRow("87654322", "STANDARD_ALL_PURPOSE_COMPUTE", nil, nil, 89.75)
 
 	mock.ExpectQuery("SELECT (.+) FROM system.billing.usage").
 		WillReturnRows(rows)
@@ -55,6 +55,7 @@ func TestBillingCollector_CollectBillingDBUs(t *testing.T) {
 
 	// Verify metrics
 	count := 0
+	untaggedMetrics := 0
 	for m := range ch {
 		count++
 
@@ -73,12 +74,20 @@ func TestBillingCollector_CollectBillingDBUs(t *testing.T) {
 
 		assert.Contains(t, labels, "workspace_id", "missing workspace_id label")
 		assert.Contains(t, labels, "sku_name", "missing sku_name label")
+		assert.Contains(t, labels, "tag_key", "missing tag_key label")
+		assert.Contains(t, labels, "tag_value", "missing tag_value label")
+		if labels["workspace_id"] == "87654322" {
+			assert.Equal(t, "", labels["tag_key"], "untagged usage should have an empty tag_key")
+			assert.Equal(t, "", labels["tag_value"], "untagged usage should have an empty tag_value")
+			untaggedMetrics++
+		}
 
 		// Verify value
 		assert.Greater(t, pb.Gauge.GetValue(), float64(0), "expected positive value")
 	}
 
 	assert.Equal(t, 3, count, "expected 3 metrics")
+	assert.Equal(t, 1, untaggedMetrics, "expected an untagged usage metric")
 
 	// Verify all expectations were met
 	require.NoError(t, mock.ExpectationsWereMet(), "unfulfilled expectations")
@@ -92,9 +101,9 @@ func TestBillingCollector_CollectBillingCost(t *testing.T) {
 	defer func() { _ = db.Close() }()
 
 	// Set up mock expectations
-	rows := sqlmock.NewRows([]string{"workspace_id", "sku_name", "cost_estimate_usd"}).
-		AddRow("87654321", "STANDARD_ALL_PURPOSE_COMPUTE", 69.025).
-		AddRow("87654321", "PREMIUM_JOBS_COMPUTE", 337.6875)
+	rows := sqlmock.NewRows([]string{"workspace_id", "sku_name", "tag_key", "tag_value", "cost_estimate_usd"}).
+		AddRow("87654321", "STANDARD_ALL_PURPOSE_COMPUTE", "environment", "production", 69.025).
+		AddRow("87654321", "PREMIUM_JOBS_COMPUTE", nil, nil, 337.6875)
 
 	mock.ExpectQuery("SELECT (.+) FROM system.billing.usage u").
 		WillReturnRows(rows)

@@ -76,9 +76,9 @@ func TestSQLWarehouseCollector_CollectQueries(t *testing.T) {
 	defer func() { _ = db.Close() }()
 
 	// Mock query result
-	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "query_count"}).
-		AddRow("123456789", "wh1", 5000.0).
-		AddRow("987654321", "wh2", 3500.0)
+	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "tag_key", "tag_value", "query_count"}).
+		AddRow("123456789", "wh1", "team", "analytics", 5000.0).
+		AddRow("987654321", "wh2", "", "", 3500.0)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.query.history").WillReturnRows(rows)
 
@@ -127,9 +127,9 @@ func TestSQLWarehouseCollector_CollectQueryErrors(t *testing.T) {
 	mock.ExpectQuery("SELECT(.+)FROM system.query.history").
 		WillReturnRows(sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "query_count"}))
 
-	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "error_count"}).
-		AddRow("123456789", "wh1", 25.0).
-		AddRow("987654321", "wh2", 12.0)
+	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "tag_key", "tag_value", "error_count"}).
+		AddRow("123456789", "wh1", "team", "analytics", 25.0).
+		AddRow("987654321", "wh2", "", "", 12.0)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.query.history").WillReturnRows(rows)
 
@@ -185,8 +185,8 @@ func TestSQLWarehouseCollector_CollectQueryDuration(t *testing.T) {
 	mock.ExpectQuery("SELECT(.+)FROM system.query.history").
 		WillReturnRows(sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "error_count"}))
 
-	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "p50", "p95", "p99"}).
-		AddRow("123456789", "wh1", 2.5, 15.8, 45.3)
+	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "tag_key", "tag_value", "p50", "p95", "p99"}).
+		AddRow("123456789", "wh1", "", "", 2.5, 15.8, 45.3)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.query.history").WillReturnRows(rows)
 
@@ -283,9 +283,9 @@ func TestSQLWarehouseCollector_CollectQueriesRunning(t *testing.T) {
 	mock.ExpectQuery("SELECT(.+)FROM system.query.history").
 		WillReturnRows(sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "p50", "p95", "p99"}))
 
-	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "max_concurrent"}).
-		AddRow("123456789", "wh1", 15.0).
-		AddRow("987654321", "wh2", 8.0)
+	rows := sqlmock.NewRows([]string{"workspace_id", "warehouse_id", "tag_key", "tag_value", "max_concurrent"}).
+		AddRow("123456789", "wh1", "team", "analytics", 15.0).
+		AddRow("987654321", "wh2", "", "", 8.0)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.query.history").WillReturnRows(rows)
 

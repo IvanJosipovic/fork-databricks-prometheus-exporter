@@ -8,28 +8,31 @@ The exporter collects metrics across four categories: billing, jobs, pipelines, 
 
 | Category | Metric | Labels | Description |
 |----------|--------|--------|-------------|
-| Billing | `databricks_billing_dbus_sliding` | `workspace_id`, `sku_name` | DBUs consumed (24h window) |
-| Billing | `databricks_billing_cost_estimate_usd_sliding` | `workspace_id`, `sku_name` | Estimated cost in USD (24h window) |
+| Billing | `databricks_billing_dbus_sliding` | `workspace_id`, `sku_name`, `tag_key`, `tag_value` | DBUs consumed (24h window) |
+| Billing | `databricks_billing_cost_estimate_usd_sliding` | `workspace_id`, `sku_name`, `tag_key`, `tag_value` | Estimated cost in USD (24h window) |
 | Billing | `databricks_price_change_events_sliding` | `sku_name` | Price changes per SKU (24h window) |
-| Jobs | `databricks_job_runs_sliding` | `workspace_id`, `job_id`, `job_name` | Job runs count |
-| Jobs | `databricks_job_run_status_sliding` | `workspace_id`, `job_id`, `job_name`, `status` | Job runs by status |
-| Jobs | `databricks_job_run_duration_seconds_sliding` | `workspace_id`, `job_id`, `job_name`, `quantile` | Job duration quantiles |
-| Jobs | `databricks_task_retries_sliding` | `workspace_id`, `job_id`, `job_name`, `task_key` | Task retry counts |
-| Jobs | `databricks_job_sla_miss_sliding` | `workspace_id`, `job_id`, `job_name` | Jobs exceeding SLA threshold |
-| Pipelines | `databricks_pipeline_runs_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name` | Pipeline runs count |
-| Pipelines | `databricks_pipeline_run_status_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name`, `status` | Pipeline runs by status |
-| Pipelines | `databricks_pipeline_run_duration_seconds_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name`, `quantile` | Pipeline duration quantiles |
-| Pipelines | `databricks_pipeline_retry_events_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name` | Pipeline retry events |
-| Pipelines | `databricks_pipeline_freshness_lag_seconds_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name` | Data freshness lag |
-| Queries | `databricks_queries_sliding` | `workspace_id`, `warehouse_id` | SQL queries executed |
-| Queries | `databricks_query_errors_sliding` | `workspace_id`, `warehouse_id` | Failed SQL queries |
-| Queries | `databricks_query_duration_seconds_sliding` | `workspace_id`, `warehouse_id`, `quantile` | Query duration quantiles |
-| Queries | `databricks_queries_running_sliding` | `workspace_id`, `warehouse_id` | Concurrent queries estimate |
+| Billing | `databricks_billing_scrape_errors` | `stage` | Billing collection error status |
+| Jobs | `databricks_job_runs_sliding` | `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value` | Job runs count |
+| Jobs | `databricks_job_run_status_sliding` | `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`, `status` | Job runs by status |
+| Jobs | `databricks_job_run_duration_seconds_sliding` | `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`, `quantile` | Job duration quantiles |
+| Jobs | `databricks_task_retries_sliding` | `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`, `task_key` | Task retry counts |
+| Jobs | `databricks_job_sla_miss_sliding` | `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value` | Jobs exceeding SLA threshold |
+| Pipelines | `databricks_pipeline_runs_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value` | Pipeline runs count |
+| Pipelines | `databricks_pipeline_run_status_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value`, `status` | Pipeline runs by status |
+| Pipelines | `databricks_pipeline_run_duration_seconds_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value`, `quantile` | Pipeline duration quantiles |
+| Pipelines | `databricks_pipeline_retry_events_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value` | Pipeline retry events |
+| Pipelines | `databricks_pipeline_freshness_lag_seconds_sliding` | `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value` | Data freshness lag |
+| Queries | `databricks_queries_sliding` | `workspace_id`, `warehouse_id`, `tag_key`, `tag_value` | SQL queries executed |
+| Queries | `databricks_query_errors_sliding` | `workspace_id`, `warehouse_id`, `tag_key`, `tag_value` | Failed SQL queries |
+| Queries | `databricks_query_duration_seconds_sliding` | `workspace_id`, `warehouse_id`, `tag_key`, `tag_value`, `quantile` | Query duration quantiles |
+| Queries | `databricks_queries_running_sliding` | `workspace_id`, `warehouse_id`, `tag_key`, `tag_value` | Concurrent queries estimate |
 | Health | `databricks_exporter_up` | — | Exporter connectivity (1=up, 0=down) |
 | Health | `databricks_scrape_status` | `query` | Per-query scrape status |
 | Health | `databricks_exporter_info` | `version`, `*_window` | Build and config info |
 
 All metrics also include standard Prometheus labels `job` and `instance` for scrape identification.
+
+All job, pipeline, and SQL query metrics also include fixed `tag_key` and `tag_value` labels for dashboard filtering. Each resource tag produces a separate series; untagged records are retained with both labels empty. `databricks_price_change_events_sliding` is intentionally not tagged because `system.billing.list_prices` has no resource tag map.
 
 ---
 
@@ -43,7 +46,7 @@ Sliding window DBU consumption per workspace and SKU (default: last 24 hours).
 
 - **Source table:** `system.billing.usage`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `sku_name`
+- **Labels:** `workspace_id`, `sku_name`, `tag_key`, `tag_value`
 
 ### `databricks_billing_cost_estimate_usd_sliding`
 
@@ -51,7 +54,9 @@ Estimated cost in USD calculated by joining usage with pricing data (sliding win
 
 - **Source tables:** `system.billing.usage`, `system.billing.list_prices`
 - **Type:** Gauge (sliding window value that can decrease as the window moves)
-- **Labels:** `workspace_id`, `sku_name`
+- **Labels:** `workspace_id`, `sku_name`, `tag_key`, `tag_value`
+
+Both billing usage metrics emit one series per `system.billing.usage.custom_tags` entry. Untagged usage is retained with empty `tag_key` and `tag_value` labels, so adding tag support does not filter metrics or hide untagged costs.
 
 ### `databricks_price_change_events_sliding`
 
@@ -67,13 +72,15 @@ Count of price changes per SKU within the billing lookback window (default: last
 
 These metrics track Databricks job executions (sliding window, default: last 4 hours).
 
+All job metrics include `tag_key` and `tag_value`, expanded from the latest non-deleted `system.lakeflow.jobs` record for each job.
+
 ### `databricks_job_runs_sliding`
 
 Job runs per workspace and job within the lookback window.
 
 - **Source table:** `system.lakeflow.job_run_timeline`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `job_id`, `job_name`
+- **Labels:** `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`
 
 ### `databricks_job_run_status_sliding`
 
@@ -81,7 +88,7 @@ Job run counts broken down by result state.
 
 - **Source table:** `system.lakeflow.job_run_timeline`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `job_id`, `job_name`, `status`
+- **Labels:** `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`, `status`
 - **Status values:** `SUCCEEDED`, `FAILED`, `CANCELED`, `TIMED_OUT`, etc.
 
 ### `databricks_job_run_duration_seconds_sliding`
@@ -90,7 +97,7 @@ Job run duration quantiles (p50, p95, p99).
 
 - **Source table:** `system.lakeflow.job_run_timeline`
 - **Type:** Gauge
-- **Labels:** `workspace_id`, `job_id`, `job_name`, `quantile`
+- **Labels:** `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`, `quantile`
 - **Quantile values:** `0.50`, `0.95`, `0.99`
 
 ### `databricks_task_retries_sliding`
@@ -99,7 +106,7 @@ Count of task retry attempts within the lookback window.
 
 - **Source table:** `system.lakeflow.job_task_run_timeline`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `job_id`, `job_name`, `task_key`
+- **Labels:** `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`, `task_key`
 - **Note:** Disabled by default due to high cardinality. Enable with `--collect-task-retries`.
 
 ### `databricks_job_sla_miss_sliding`
@@ -108,13 +115,15 @@ Jobs that exceeded the SLA threshold (default: 1 hour) within the lookback windo
 
 - **Source table:** `system.lakeflow.job_run_timeline`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `job_id`, `job_name`
+- **Labels:** `workspace_id`, `job_id`, `job_name`, `tag_key`, `tag_value`
 
 ---
 
 ## Pipeline metrics
 
 These metrics track Delta Live Tables (DLT) pipeline executions (sliding window, default: last 4 hours).
+
+All pipeline metrics include `tag_key` and `tag_value`, expanded from the latest non-deleted `system.lakeflow.pipelines` record for each pipeline.
 
 > **⚠️ Permissions Note:** Pipeline metrics require `SELECT` permission on `system.lakeflow.pipeline_update_timeline`. See [Troubleshooting](../README.md#pipeline-metrics-not-available-table_or_view_not_found).
 
@@ -124,7 +133,7 @@ Pipeline update runs per workspace and pipeline within the lookback window.
 
 - **Source table:** `system.lakeflow.pipeline_update_timeline`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`
+- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value`
 
 ### `databricks_pipeline_run_status_sliding`
 
@@ -132,7 +141,7 @@ Pipeline run counts broken down by result state.
 
 - **Source table:** `system.lakeflow.pipeline_update_timeline`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`, `status`
+- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value`, `status`
 - **Status values:** `COMPLETED`, `FAILED`, `CANCELED`, etc.
 
 ### `databricks_pipeline_run_duration_seconds_sliding`
@@ -141,7 +150,7 @@ Pipeline run duration quantiles (p50, p95, p99).
 
 - **Source table:** `system.lakeflow.pipeline_update_timeline`
 - **Type:** Gauge
-- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`, `quantile`
+- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value`, `quantile`
 - **Quantile values:** `0.50`, `0.95`, `0.99`
 
 ### `databricks_pipeline_retry_events_sliding`
@@ -150,7 +159,7 @@ Pipeline retry events within the lookback window.
 
 - **Source table:** `system.lakeflow.pipeline_update_timeline`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`
+- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value`
 
 ### `databricks_pipeline_freshness_lag_seconds_sliding`
 
@@ -158,7 +167,7 @@ Average time lag between pipeline completion and current time.
 
 - **Source table:** `system.lakeflow.pipeline_update_timeline`
 - **Type:** Gauge
-- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`
+- **Labels:** `workspace_id`, `pipeline_id`, `pipeline_name`, `tag_key`, `tag_value`
 
 ---
 
@@ -166,13 +175,17 @@ Average time lag between pipeline completion and current time.
 
 These metrics track SQL query performance across warehouses and serverless compute (sliding window, default: last 2 hours).
 
+All SQL query metrics include `tag_key` and `tag_value`, expanded from the latest non-deleted `system.compute.warehouses` definition for the query's warehouse. Untagged, deleted, or unknown warehouses are retained with empty tag labels. Statement-level `system.query.history.query_tags` are not exported.
+
+> **Permissions Note:** SQL query metrics require `USE SCHEMA` on `system.compute` and `SELECT` on `system.compute.warehouses` in addition to the `system.query` grants.
+
 ### `databricks_queries_sliding`
 
 SQL queries executed per workspace and warehouse within the lookback window.
 
 - **Source table:** `system.query.history`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `warehouse_id`
+- **Labels:** `workspace_id`, `warehouse_id`, `tag_key`, `tag_value`
 
 ### `databricks_query_errors_sliding`
 
@@ -180,7 +193,7 @@ Failed queries per workspace and warehouse within the lookback window.
 
 - **Source table:** `system.query.history`
 - **Type:** Gauge (sliding window count that can decrease as the window moves)
-- **Labels:** `workspace_id`, `warehouse_id`
+- **Labels:** `workspace_id`, `warehouse_id`, `tag_key`, `tag_value`
 
 ### `databricks_query_duration_seconds_sliding`
 
@@ -188,7 +201,7 @@ Query duration quantiles (p50, p95, p99) in seconds.
 
 - **Source table:** `system.query.history`
 - **Type:** Gauge
-- **Labels:** `workspace_id`, `warehouse_id`, `quantile`
+- **Labels:** `workspace_id`, `warehouse_id`, `tag_key`, `tag_value`, `quantile`
 - **Quantile values:** `0.50`, `0.95`, `0.99`
 
 ### `databricks_queries_running_sliding`
@@ -197,7 +210,7 @@ Estimated count of concurrent queries (derived from overlapping execution interv
 
 - **Source table:** `system.query.history`
 - **Type:** Gauge
-- **Labels:** `workspace_id`, `warehouse_id`
+- **Labels:** `workspace_id`, `warehouse_id`, `tag_key`, `tag_value`
 
 ---
 
@@ -232,10 +245,11 @@ Build and configuration information for the exporter. Useful for tracking deploy
 - **Type:** Gauge (always 1)
 - **Labels:** `version`, `billing_window`, `jobs_window`, `pipelines_window`, `queries_window`
 
+
+
 ### `databricks_billing_scrape_errors`
 
-Count of errors encountered during billing data collection.
+Billing collection failure indicator by stage. The exporter emits a value of `1` only when that stage fails during a scrape; it does not emit a zero-valued series for successful stages.
 
-- **Type:** Counter
-- **Labels:** `workspace_id`
-
+- **Type:** Gauge
+- **Labels:** `stage` (`billing_dbus`, `billing_cost`, or `price_changes`)

@@ -93,10 +93,10 @@ func (c *SQLWarehouseCollector) collectQueries(ch chan<- prometheus.Metric) erro
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, warehouseID sql.NullString
+		var workspaceID, warehouseID, tagKey, tagValue sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &warehouseID, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &warehouseID, &tagKey, &tagValue, &count); err != nil {
 			return fmt.Errorf("failed to scan queries row: %w", err)
 		}
 
@@ -107,6 +107,8 @@ func (c *SQLWarehouseCollector) collectQueries(ch chan<- prometheus.Metric) erro
 				count.Float64,
 				workspaceID.String,
 				warehouseID.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}
@@ -128,10 +130,10 @@ func (c *SQLWarehouseCollector) collectQueryErrors(ch chan<- prometheus.Metric) 
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, warehouseID sql.NullString
+		var workspaceID, warehouseID, tagKey, tagValue sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &warehouseID, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &warehouseID, &tagKey, &tagValue, &count); err != nil {
 			return fmt.Errorf("failed to scan query errors row: %w", err)
 		}
 
@@ -142,6 +144,8 @@ func (c *SQLWarehouseCollector) collectQueryErrors(ch chan<- prometheus.Metric) 
 				count.Float64,
 				workspaceID.String,
 				warehouseID.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}
@@ -163,10 +167,10 @@ func (c *SQLWarehouseCollector) collectQueryDuration(ch chan<- prometheus.Metric
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, warehouseID sql.NullString
+		var workspaceID, warehouseID, tagKey, tagValue sql.NullString
 		var p50, p95, p99 sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &warehouseID, &p50, &p95, &p99); err != nil {
+		if err := rows.Scan(&workspaceID, &warehouseID, &tagKey, &tagValue, &p50, &p95, &p99); err != nil {
 			return fmt.Errorf("failed to scan query duration row: %w", err)
 		}
 
@@ -178,6 +182,8 @@ func (c *SQLWarehouseCollector) collectQueryDuration(ch chan<- prometheus.Metric
 				p50.Float64,
 				workspaceID.String,
 				warehouseID.String,
+				tagKey.String,
+				tagValue.String,
 				"0.50",
 			)
 		}
@@ -190,6 +196,8 @@ func (c *SQLWarehouseCollector) collectQueryDuration(ch chan<- prometheus.Metric
 				p95.Float64,
 				workspaceID.String,
 				warehouseID.String,
+				tagKey.String,
+				tagValue.String,
 				"0.95",
 			)
 		}
@@ -202,6 +210,8 @@ func (c *SQLWarehouseCollector) collectQueryDuration(ch chan<- prometheus.Metric
 				p99.Float64,
 				workspaceID.String,
 				warehouseID.String,
+				tagKey.String,
+				tagValue.String,
 				"0.99",
 			)
 		}
@@ -224,10 +234,10 @@ func (c *SQLWarehouseCollector) collectQueriesRunning(ch chan<- prometheus.Metri
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, warehouseID sql.NullString
+		var workspaceID, warehouseID, tagKey, tagValue sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &warehouseID, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &warehouseID, &tagKey, &tagValue, &count); err != nil {
 			return fmt.Errorf("failed to scan running queries row: %w", err)
 		}
 
@@ -238,6 +248,8 @@ func (c *SQLWarehouseCollector) collectQueriesRunning(ch chan<- prometheus.Metri
 				count.Float64,
 				workspaceID.String,
 				warehouseID.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}

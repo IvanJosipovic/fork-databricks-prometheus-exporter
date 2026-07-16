@@ -29,6 +29,8 @@ const (
 	labelPipelineID   = "pipeline_id"
 	labelPipelineName = "pipeline_name"
 	labelTaskKey      = "task_key"
+	labelTagKey       = "tag_key"
+	labelTagValue     = "tag_value"
 	labelWarehouseID  = "warehouse_id"
 
 	// Scrape status labels

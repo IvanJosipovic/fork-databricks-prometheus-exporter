@@ -97,10 +97,10 @@ func (c *JobsCollector) collectJobRuns(ch chan<- prometheus.Metric) error {
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, jobID, jobName sql.NullString
+		var workspaceID, jobID, jobName, tagKey, tagValue sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &jobID, &jobName, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &jobID, &jobName, &tagKey, &tagValue, &count); err != nil {
 			return fmt.Errorf("failed to scan job runs row: %w", err)
 		}
 
@@ -112,6 +112,8 @@ func (c *JobsCollector) collectJobRuns(ch chan<- prometheus.Metric) error {
 				workspaceID.String,
 				jobID.String,
 				jobName.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}
@@ -133,10 +135,10 @@ func (c *JobsCollector) collectJobRunStatus(ch chan<- prometheus.Metric) error {
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, jobID, jobName, status sql.NullString
+		var workspaceID, jobID, jobName, tagKey, tagValue, status sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &jobID, &jobName, &status, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &jobID, &jobName, &tagKey, &tagValue, &status, &count); err != nil {
 			return fmt.Errorf("failed to scan job run status row: %w", err)
 		}
 
@@ -148,6 +150,8 @@ func (c *JobsCollector) collectJobRunStatus(ch chan<- prometheus.Metric) error {
 				workspaceID.String,
 				jobID.String,
 				jobName.String,
+				tagKey.String,
+				tagValue.String,
 				status.String,
 			)
 		}
@@ -170,10 +174,10 @@ func (c *JobsCollector) collectJobRunDuration(ch chan<- prometheus.Metric) error
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, jobID, jobName sql.NullString
+		var workspaceID, jobID, jobName, tagKey, tagValue sql.NullString
 		var p50, p95, p99 sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &jobID, &jobName, &p50, &p95, &p99); err != nil {
+		if err := rows.Scan(&workspaceID, &jobID, &jobName, &tagKey, &tagValue, &p50, &p95, &p99); err != nil {
 			return fmt.Errorf("failed to scan job run duration row: %w", err)
 		}
 
@@ -185,6 +189,8 @@ func (c *JobsCollector) collectJobRunDuration(ch chan<- prometheus.Metric) error
 				workspaceID.String,
 				jobID.String,
 				jobName.String,
+				tagKey.String,
+				tagValue.String,
 				"0.50",
 			)
 		}
@@ -196,6 +202,8 @@ func (c *JobsCollector) collectJobRunDuration(ch chan<- prometheus.Metric) error
 				workspaceID.String,
 				jobID.String,
 				jobName.String,
+				tagKey.String,
+				tagValue.String,
 				"0.95",
 			)
 		}
@@ -207,6 +215,8 @@ func (c *JobsCollector) collectJobRunDuration(ch chan<- prometheus.Metric) error
 				workspaceID.String,
 				jobID.String,
 				jobName.String,
+				tagKey.String,
+				tagValue.String,
 				"0.99",
 			)
 		}
@@ -234,10 +244,10 @@ func (c *JobsCollector) collectTaskRetries(ch chan<- prometheus.Metric) error {
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, jobID, jobName, taskKey sql.NullString
+		var workspaceID, jobID, jobName, tagKey, tagValue, taskKey sql.NullString
 		var retries sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &jobID, &jobName, &taskKey, &retries); err != nil {
+		if err := rows.Scan(&workspaceID, &jobID, &jobName, &tagKey, &tagValue, &taskKey, &retries); err != nil {
 			return fmt.Errorf("failed to scan task retries row: %w", err)
 		}
 
@@ -249,6 +259,8 @@ func (c *JobsCollector) collectTaskRetries(ch chan<- prometheus.Metric) error {
 				workspaceID.String,
 				jobID.String,
 				jobName.String,
+				tagKey.String,
+				tagValue.String,
 				taskKey.String,
 			)
 		}
@@ -275,10 +287,10 @@ func (c *JobsCollector) collectJobSLAMiss(ch chan<- prometheus.Metric) error {
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
-		var workspaceID, jobID, jobName sql.NullString
+		var workspaceID, jobID, jobName, tagKey, tagValue sql.NullString
 		var count sql.NullFloat64
 
-		if err := rows.Scan(&workspaceID, &jobID, &jobName, &count); err != nil {
+		if err := rows.Scan(&workspaceID, &jobID, &jobName, &tagKey, &tagValue, &count); err != nil {
 			return fmt.Errorf("failed to scan job SLA miss row: %w", err)
 		}
 
@@ -290,6 +302,8 @@ func (c *JobsCollector) collectJobSLAMiss(ch chan<- prometheus.Metric) error {
 				workspaceID.String,
 				jobID.String,
 				jobName.String,
+				tagKey.String,
+				tagValue.String,
 			)
 		}
 	}

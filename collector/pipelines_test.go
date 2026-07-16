@@ -80,9 +80,9 @@ func TestPipelinesCollector_CollectPipelineRuns(t *testing.T) {
 	mock.ExpectQuery("SELECT 1 FROM system.lakeflow.pipeline_update_timeline LIMIT 1").WillReturnRows(availRows)
 
 	// Mock query result
-	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "run_count"}).
-		AddRow("123456789", "pipe1", "Test Pipeline 1", 200.0).
-		AddRow("987654321", "pipe2", "Test Pipeline 2", 150.0)
+	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "tag_key", "tag_value", "run_count"}).
+		AddRow("123456789", "pipe1", "Test Pipeline 1", "team", "platform", 200.0).
+		AddRow("987654321", "pipe2", "Test Pipeline 2", "", "", 150.0)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").WillReturnRows(rows)
 
@@ -135,10 +135,10 @@ func TestPipelinesCollector_CollectPipelineRunStatus(t *testing.T) {
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").
 		WillReturnRows(sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "run_count"}))
 
-	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "status", "run_count"}).
-		AddRow("123456789", "pipe1", "Test Pipeline 1", "COMPLETED", 180.0).
-		AddRow("123456789", "pipe1", "Test Pipeline 1", "FAILED", 15.0).
-		AddRow("987654321", "pipe2", "Test Pipeline 2", "COMPLETED", 140.0)
+	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "tag_key", "tag_value", "status", "run_count"}).
+		AddRow("123456789", "pipe1", "Test Pipeline 1", "team", "platform", "COMPLETED", 180.0).
+		AddRow("123456789", "pipe1", "Test Pipeline 1", "team", "platform", "FAILED", 15.0).
+		AddRow("987654321", "pipe2", "Test Pipeline 2", "", "", "COMPLETED", 140.0)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").WillReturnRows(rows)
 
@@ -200,8 +200,8 @@ func TestPipelinesCollector_CollectPipelineRunDuration(t *testing.T) {
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").
 		WillReturnRows(sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "status", "run_count"}))
 
-	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "p50", "p95", "p99"}).
-		AddRow("123456789", "pipe1", "Test Pipeline 1", 450.5, 1250.8, 2100.3)
+	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "tag_key", "tag_value", "p50", "p95", "p99"}).
+		AddRow("123456789", "pipe1", "Test Pipeline 1", "", "", 450.5, 1250.8, 2100.3)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").WillReturnRows(rows)
 
@@ -310,9 +310,9 @@ func TestPipelinesCollector_CollectRetryEvents(t *testing.T) {
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").
 		WillReturnRows(sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "p50", "p95", "p99"}))
 
-	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "retry_count"}).
-		AddRow("123456789", "pipe1", "Test Pipeline 1", 18.0).
-		AddRow("987654321", "pipe2", "Test Pipeline 2", 9.0)
+	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "tag_key", "tag_value", "retry_count"}).
+		AddRow("123456789", "pipe1", "Test Pipeline 1", "team", "platform", 18.0).
+		AddRow("987654321", "pipe2", "Test Pipeline 2", "", "", 9.0)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").WillReturnRows(rows)
 
@@ -359,10 +359,10 @@ func TestPipelinesCollector_CollectFreshnessLag(t *testing.T) {
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").
 		WillReturnRows(sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "retry_count"}))
 
-	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "lag_seconds"}).
-		AddRow("123456789", "pipe1", "Test Pipeline 1", 120.5).
-		AddRow("123456789", "pipe2", "Test Pipeline 2", 45.2).
-		AddRow("987654321", "pipe3", "Test Pipeline 3", 200.8)
+	rows := sqlmock.NewRows([]string{"workspace_id", "pipeline_id", "pipeline_name", "tag_key", "tag_value", "lag_seconds"}).
+		AddRow("123456789", "pipe1", "Test Pipeline 1", "team", "platform", 120.5).
+		AddRow("123456789", "pipe2", "Test Pipeline 2", "", "", 45.2).
+		AddRow("987654321", "pipe3", "Test Pipeline 3", "", "", 200.8)
 
 	mock.ExpectQuery("SELECT(.+)FROM system.lakeflow.pipeline_update_timeline").WillReturnRows(rows)
 

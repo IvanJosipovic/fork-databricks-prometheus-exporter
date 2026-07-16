@@ -13,6 +13,7 @@ Contains usage records for all Databricks services. Each row represents a usage 
 - `usage_date` - Date of the usage record
 - `cloud` - Cloud provider (AWS, Azure, or GCP)
 - `usage_metadata` - Structured metadata including cluster IDs, job IDs, warehouse IDs, etc.
+- `custom_tags` - Map of user-defined usage tags. The exporter emits one billing metric series per tag using `tag_key` and `tag_value`; usage records without tags are retained with both labels empty.
 
 ## `system.billing.list_prices`
 
@@ -38,6 +39,8 @@ Tracks Databricks job executions at the run level. Each row represents a time pe
 - `period_start_time` - Start time for this period
 - `period_end_time` - End time for this period
 - `run_type` - Type of run (JOB_RUN, WORKFLOW_RUN, etc.)
+
+The exporter joins `system.lakeflow.jobs` to resolve job names and tags. It selects the latest non-deleted SCD record per workspace and job before expanding its `tags` map into `tag_key` and `tag_value` metric labels.
 
 ## `system.lakeflow.job_task_run_timeline`
 
@@ -69,6 +72,8 @@ Tracks Delta Live Tables (DLT) pipeline update executions. Records both successf
 - `period_end_time` - End time
 - `update_type` - Type of update (FULL_REFRESH, INCREMENTAL, etc.)
 
+The exporter joins `system.lakeflow.pipelines` to resolve pipeline names and tags. It selects the latest non-deleted SCD record per workspace and pipeline before expanding its `tags` map into `tag_key` and `tag_value` metric labels.
+
 ## `system.query.history`
 
 Contains execution history for all SQL queries run in the workspace. Includes queries from SQL warehouses, notebooks, and serverless compute.
@@ -82,6 +87,19 @@ Contains execution history for all SQL queries run in the workspace. Includes qu
 - `total_duration_ms` - Total execution time in milliseconds
 - `error_message` - Error details if the query failed
 - `query_source` - Structured data about what triggered the query
+
+## `system.compute.warehouses`
+
+Contains snapshots of SQL warehouse definitions. The exporter selects the latest non-deleted definition per workspace and warehouse, joins it to query history using `warehouse_id`, and expands its `tags` map into `tag_key` and `tag_value` metric labels. Query metrics for untagged, deleted, or unknown warehouses are retained with both labels empty.
+
+> **Permissions Note:** The exporter Service Principal requires `USE SCHEMA` on `system.compute` and `SELECT` on `system.compute.warehouses`.
+
+**Key columns:**
+- `workspace_id` - ID of the workspace
+- `warehouse_id` - ID of the SQL warehouse
+- `tags` - Map of SQL warehouse resource tags
+- `change_time` - When the warehouse definition changed
+- `delete_time` - When the warehouse was deleted; null for active warehouses
 
 ## Metrics
 

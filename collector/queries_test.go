@@ -80,6 +80,9 @@ func TestBuildBillingDBUsQuery(t *testing.T) {
 			if !strings.Contains(query, "sku_name") {
 				t.Error("Query should select sku_name")
 			}
+			if !strings.Contains(query, "LATERAL VIEW OUTER EXPLODE(custom_tags)") {
+				t.Error("Query should expose custom tags while retaining untagged usage")
+			}
 		})
 	}
 }
@@ -103,6 +106,9 @@ func TestBuildBillingCostEstimateQuery(t *testing.T) {
 			// Verify joins pricing data
 			if !strings.Contains(query, "system.billing.list_prices") {
 				t.Error("Query should reference system.billing.list_prices")
+			}
+			if !strings.Contains(query, "LATERAL VIEW OUTER EXPLODE(u.custom_tags)") {
+				t.Error("Query should expose custom tags while retaining untagged usage")
 			}
 		})
 	}
@@ -322,6 +328,68 @@ func TestBuildQueriesRunningQuery(t *testing.T) {
 	}
 	if !strings.Contains(query, "max_concurrent") {
 		t.Error("Query should calculate max_concurrent")
+	}
+}
+
+func TestWorkloadQueriesExpandResourceTags(t *testing.T) {
+	lookback := 2 * time.Hour
+	queries := []struct {
+		name     string
+		query    string
+		expected string
+	}{
+		{"job runs", BuildJobRunsQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"job status", BuildJobRunStatusQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"job duration", BuildJobRunDurationQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"task retries", BuildTaskRetriesQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"job SLA miss", BuildJobSLAMissQuery(lookback, 3600), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"pipeline runs", BuildPipelineRunsQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"pipeline status", BuildPipelineRunStatusQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"pipeline duration", BuildPipelineRunDurationQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"pipeline retries", BuildPipelineRetryEventsQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"pipeline freshness", BuildPipelineFreshnessLagQuery(lookback), "LATERAL VIEW OUTER EXPLODE(tags)"},
+		{"queries", BuildQueriesQuery(lookback), "system.compute.warehouses"},
+		{"query errors", BuildQueryErrorsQuery(lookback), "system.compute.warehouses"},
+		{"query duration", BuildQueryDurationQuery(lookback), "system.compute.warehouses"},
+		{"running queries", BuildQueriesRunningQuery(lookback), "system.compute.warehouses"},
+	}
+
+	for _, testCase := range queries {
+		t.Run(testCase.name, func(t *testing.T) {
+			if !strings.Contains(testCase.query, testCase.expected) {
+				t.Errorf("query must preserve untagged rows with %q", testCase.expected)
+			}
+			if !strings.Contains(testCase.query, "COALESCE(tag_key, '')") || !strings.Contains(testCase.query, "COALESCE(tag_value, '')") {
+				t.Error("query must emit empty tag labels for untagged rows")
+			}
+			if strings.Contains(testCase.query, "query_tags") {
+				t.Error("query must use resource tags rather than statement query tags")
+			}
+		})
+	}
+}
+
+func TestLateralViewsFollowJoins(t *testing.T) {
+	tests := []struct {
+		name        string
+		query       string
+		joinClause  string
+		lateralView string
+	}{
+		{
+			name:        "billing cost",
+			query:       BuildBillingCostEstimateQuery(24 * time.Hour),
+			joinClause:  "LEFT JOIN current_prices",
+			lateralView: "LATERAL VIEW OUTER EXPLODE(u.custom_tags)",
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			if strings.Index(testCase.query, testCase.joinClause) > strings.Index(testCase.query, testCase.lateralView) {
+				t.Errorf("%s must follow the complete JOIN clause", testCase.lateralView)
+			}
+		})
 	}
 }
 

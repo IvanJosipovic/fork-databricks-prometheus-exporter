@@ -24,12 +24,12 @@ func TestNewMetricDescriptors(t *testing.T) {
 		{
 			name:   "BillingDBUs",
 			desc:   metrics.BillingDBUs,
-			labels: []string{labelWorkspaceID, labelSKUName},
+			labels: []string{labelWorkspaceID, labelSKUName, labelTagKey, labelTagValue},
 		},
 		{
 			name:   "BillingCostEstimateUSD",
 			desc:   metrics.BillingCostEstimateUSD,
-			labels: []string{labelWorkspaceID, labelSKUName},
+			labels: []string{labelWorkspaceID, labelSKUName, labelTagKey, labelTagValue},
 		},
 		{
 			name:   "PriceChangeEvents",
@@ -224,5 +224,38 @@ func TestMetricDescriptors_AllMetricsHaveDescriptions(t *testing.T) {
 				t.Errorf("%s description is too short: %s", tt.name, descString)
 			}
 		})
+	}
+}
+
+func TestWorkloadMetricDescriptorsIncludeTagLabels(t *testing.T) {
+	metrics := NewMetricDescriptors()
+
+	workloadDescriptors := []*prometheus.Desc{
+		metrics.JobRuns,
+		metrics.JobRunStatus,
+		metrics.JobRunDurationSeconds,
+		metrics.TaskRetries,
+		metrics.JobSLAMiss,
+		metrics.PipelineRuns,
+		metrics.PipelineRunStatus,
+		metrics.PipelineRunDurationSeconds,
+		metrics.PipelineRetryEvents,
+		metrics.PipelineFreshnessLagSeconds,
+		metrics.Queries,
+		metrics.QueryDurationSeconds,
+		metrics.QueryErrors,
+		metrics.QueriesRunning,
+	}
+
+	for _, descriptor := range workloadDescriptors {
+		description := descriptor.String()
+		if !strings.Contains(description, `tag_key`) || !strings.Contains(description, `tag_value`) {
+			t.Errorf("workload descriptor is missing tag labels: %s", description)
+		}
+	}
+
+	priceChangeDescription := metrics.PriceChangeEvents.String()
+	if strings.Contains(priceChangeDescription, `tag_key`) || strings.Contains(priceChangeDescription, `tag_value`) {
+		t.Errorf("PriceChangeEvents must not expose tag labels: %s", priceChangeDescription)
 	}
 }

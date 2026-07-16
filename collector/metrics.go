@@ -47,19 +47,19 @@ func NewMetricDescriptors() *MetricDescriptors {
 
 		BillingDBUs: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "billing", "dbus_sliding"),
-			"Databricks Units (DBUs) consumed per workspace and SKU. "+
+			"Databricks Units (DBUs) consumed per workspace, SKU, and custom tag. "+
 				"Note: Databricks billing data has 24-48h lag from actual usage. "+
 				"Sliding window configurable via --billing-lookback (default: 24h).",
-			[]string{labelWorkspaceID, labelSKUName},
+			[]string{labelWorkspaceID, labelSKUName, labelTagKey, labelTagValue},
 			nil,
 		),
 
 		BillingCostEstimateUSD: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "billing", "cost_estimate_usd_sliding"),
-			"List-price cost estimate (DBUs × list price) per workspace and SKU. "+
+			"List-price cost estimate (DBUs × list price) per workspace, SKU, and custom tag. "+
 				"Note: Databricks billing data has 24-48h lag from actual usage. "+
 				"Sliding window configurable via --billing-lookback (default: 24h).",
-			[]string{labelWorkspaceID, labelSKUName},
+			[]string{labelWorkspaceID, labelSKUName, labelTagKey, labelTagValue},
 			nil,
 		),
 
@@ -83,36 +83,36 @@ func NewMetricDescriptors() *MetricDescriptors {
 
 		JobRuns: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "job_runs_sliding"),
-			"Lakeflow Jobs runs per workspace and job (sliding window, configurable via --jobs-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelJobID, labelJobName},
+			"Lakeflow Jobs runs per workspace, job, and tag (sliding window, configurable via --jobs-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelJobID, labelJobName, labelTagKey, labelTagValue},
 			nil,
 		),
 
 		JobRunStatus: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "job_run_status_sliding"),
-			"Job status counts (SUCCEEDED/FAILED/CANCELED) per workspace and job (sliding window, configurable via --jobs-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelJobID, labelJobName, labelStatus},
+			"Job status counts (SUCCEEDED/FAILED/CANCELED) per workspace, job, and tag (sliding window, configurable via --jobs-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelJobID, labelJobName, labelTagKey, labelTagValue, labelStatus},
 			nil,
 		),
 
 		JobRunDurationSeconds: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "job_run_duration_seconds_sliding"),
-			"Job run duration quantiles (p50/p95/p99) per workspace and job (sliding window, configurable via --jobs-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelJobID, labelJobName, labelQuantile},
+			"Job run duration quantiles (p50/p95/p99) per workspace, job, and tag (sliding window, configurable via --jobs-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelJobID, labelJobName, labelTagKey, labelTagValue, labelQuantile},
 			nil,
 		),
 
 		TaskRetries: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "task_retries_sliding"),
-			"Retries across job tasks per workspace, job, and task key (sliding window, configurable via --jobs-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelJobID, labelJobName, labelTaskKey},
+			"Retries across job tasks per workspace, job, tag, and task key (sliding window, configurable via --jobs-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelJobID, labelJobName, labelTagKey, labelTagValue, labelTaskKey},
 			nil,
 		),
 
 		JobSLAMiss: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "job_sla_miss_sliding"),
-			"Job runs exceeding SLA threshold (configurable via --sla-threshold) per workspace and job (sliding window, configurable via --jobs-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelJobID, labelJobName},
+			"Job runs exceeding SLA threshold (configurable via --sla-threshold) per workspace, job, and tag (sliding window, configurable via --jobs-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelJobID, labelJobName, labelTagKey, labelTagValue},
 			nil,
 		),
 
@@ -120,65 +120,65 @@ func NewMetricDescriptors() *MetricDescriptors {
 
 		PipelineRuns: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "pipeline_runs_sliding"),
-			"DLT / Lakeflow Pipelines executions per workspace and pipeline (sliding window, configurable via --pipelines-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName},
+			"DLT / Lakeflow Pipelines executions per workspace, pipeline, and tag (sliding window, configurable via --pipelines-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName, labelTagKey, labelTagValue},
 			nil,
 		),
 
 		PipelineRunStatus: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "pipeline_run_status_sliding"),
-			"Pipeline run status counts (COMPLETED/FAILED) per workspace and pipeline (sliding window, configurable via --pipelines-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName, labelStatus},
+			"Pipeline run status counts (COMPLETED/FAILED) per workspace, pipeline, and tag (sliding window, configurable via --pipelines-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName, labelTagKey, labelTagValue, labelStatus},
 			nil,
 		),
 
 		PipelineRunDurationSeconds: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "pipeline_run_duration_seconds_sliding"),
-			"Pipeline run duration quantiles (p50/p95/p99) per workspace and pipeline (sliding window, configurable via --pipelines-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName, labelQuantile},
+			"Pipeline run duration quantiles (p50/p95/p99) per workspace, pipeline, and tag (sliding window, configurable via --pipelines-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName, labelTagKey, labelTagValue, labelQuantile},
 			nil,
 		),
 
 		PipelineRetryEvents: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "pipeline_retry_events_sliding"),
-			"Retry/backoff events within pipeline updates per workspace and pipeline (sliding window, configurable via --pipelines-lookback, default: 3h).",
-			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName},
+			"Retry/backoff events within pipeline updates per workspace, pipeline, and tag (sliding window, configurable via --pipelines-lookback, default: 3h).",
+			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName, labelTagKey, labelTagValue},
 			nil,
 		),
 
 		PipelineFreshnessLagSeconds: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "pipeline_freshness_lag_seconds_sliding"),
-			"Data freshness lag vs target watermark per workspace and pipeline (point-in-time, derived from latest pipeline runs within lookback window).",
-			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName},
+			"Data freshness lag vs target watermark per workspace, pipeline, and tag (point-in-time, derived from latest pipeline runs within lookback window).",
+			[]string{labelWorkspaceID, labelPipelineID, labelPipelineName, labelTagKey, labelTagValue},
 			nil,
 		),
 		// ===== SQL Warehouse Metrics (Analytics/BI) =====
 
 		Queries: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "queries_sliding"),
-			"SQL queries executed (warehouse & serverless) per workspace and warehouse (sliding window, configurable via --queries-lookback, default: 2h).",
-			[]string{labelWorkspaceID, labelWarehouseID},
+			"SQL queries executed (warehouse & serverless) per workspace, warehouse, and tag (sliding window, configurable via --queries-lookback, default: 2h).",
+			[]string{labelWorkspaceID, labelWarehouseID, labelTagKey, labelTagValue},
 			nil,
 		),
 
 		QueryDurationSeconds: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "query_duration_seconds_sliding"),
-			"Query latency quantiles (p50/p95/p99) per workspace and warehouse (sliding window, configurable via --queries-lookback, default: 2h).",
-			[]string{labelWorkspaceID, labelWarehouseID, labelQuantile},
+			"Query latency quantiles (p50/p95/p99) per workspace, warehouse, and tag (sliding window, configurable via --queries-lookback, default: 2h).",
+			[]string{labelWorkspaceID, labelWarehouseID, labelTagKey, labelTagValue, labelQuantile},
 			nil,
 		),
 
 		QueryErrors: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "query_errors_sliding"),
-			"Failed queries per workspace and warehouse (sliding window, configurable via --queries-lookback, default: 2h).",
-			[]string{labelWorkspaceID, labelWarehouseID},
+			"Failed queries per workspace, warehouse, and tag (sliding window, configurable via --queries-lookback, default: 2h).",
+			[]string{labelWorkspaceID, labelWarehouseID, labelTagKey, labelTagValue},
 			nil,
 		),
 
 		QueriesRunning: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "", "queries_running_sliding"),
-			"Concurrent/running queries per workspace and warehouse (derived from overlapping intervals within lookback window).",
-			[]string{labelWorkspaceID, labelWarehouseID},
+			"Concurrent/running queries per workspace, warehouse, and tag (derived from overlapping intervals within lookback window).",
+			[]string{labelWorkspaceID, labelWarehouseID, labelTagKey, labelTagValue},
 			nil,
 		),
 

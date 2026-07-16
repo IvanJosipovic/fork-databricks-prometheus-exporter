@@ -107,10 +107,10 @@ func (c *BillingCollector) collectBillingDBUs(ch chan<- prometheus.Metric) error
 
 	count := 0
 	for rows.Next() {
-		var workspaceID, skuName sql.NullString
+		var workspaceID, skuName, tagKey, tagValue sql.NullString
 		var dbusTotal float64
 
-		if err := rows.Scan(&workspaceID, &skuName, &dbusTotal); err != nil {
+		if err := rows.Scan(&workspaceID, &skuName, &tagKey, &tagValue, &dbusTotal); err != nil {
 			c.logger.Error("Failed to scan billing DBUs row", "err", err)
 			continue
 		}
@@ -127,6 +127,8 @@ func (c *BillingCollector) collectBillingDBUs(ch chan<- prometheus.Metric) error
 			dbusTotal,
 			workspaceID.String,
 			skuName.String,
+			tagKey.String,
+			tagValue.String,
 		)
 		count++
 	}
@@ -152,10 +154,10 @@ func (c *BillingCollector) collectBillingCost(ch chan<- prometheus.Metric) error
 
 	count := 0
 	for rows.Next() {
-		var workspaceID, skuName sql.NullString
+		var workspaceID, skuName, tagKey, tagValue sql.NullString
 		var costEstimateUSD float64
 
-		if err := rows.Scan(&workspaceID, &skuName, &costEstimateUSD); err != nil {
+		if err := rows.Scan(&workspaceID, &skuName, &tagKey, &tagValue, &costEstimateUSD); err != nil {
 			c.logger.Error("Failed to scan billing cost row", "err", err)
 			continue
 		}
@@ -172,6 +174,8 @@ func (c *BillingCollector) collectBillingCost(ch chan<- prometheus.Metric) error
 			costEstimateUSD,
 			workspaceID.String,
 			skuName.String,
+			tagKey.String,
+			tagValue.String,
 		)
 		count++
 	}

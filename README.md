@@ -115,6 +115,10 @@ GRANT USE SCHEMA ON SCHEMA system.query TO `<service-principal-id>`;
 
 GRANT SELECT ON SCHEMA system.query TO `<service-principal-id>`;
 
+GRANT USE SCHEMA ON SCHEMA system.compute TO `<service-principal-id>`;
+
+GRANT SELECT ON TABLE system.compute.warehouses TO `<service-principal-id>`;
+
 GRANT USE SCHEMA ON SCHEMA system.lakeflow TO `<service-principal-id>`;
 
 GRANT SELECT ON SCHEMA system.lakeflow TO `<service-principal-id>`;
@@ -129,6 +133,7 @@ These grants provide:
   - `system.billing.usage`, `system.billing.list_prices`
   - `system.lakeflow.job_run_timeline`, `system.lakeflow.job_task_run_timeline`, `system.lakeflow.pipeline_update_timeline`
   - `system.query.history`
+  - `system.compute.warehouses` for SQL warehouse resource tags
 
 ### Getting required configuration values
 
