@@ -30,7 +30,12 @@ local commonlib = import 'common-lib/common/main.libsonnet';
         filteringSelector=this.config.filteringSelector,
         groupLabels=this.config.groupLabels,
         instanceLabels=this.config.instanceLabels,
-        varMetric='databricks_billing_dbus_sliding',
+        varMetric=[
+          'databricks_billing_dbus_sliding',
+          'databricks_job_runs_sliding',
+          'databricks_pipeline_runs_sliding',
+          'databricks_queries_sliding',
+        ],
         customAllValue='.+',
         enableLokiLogs=this.config.enableLokiLogs,
       ),

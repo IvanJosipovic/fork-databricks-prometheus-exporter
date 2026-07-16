@@ -14,12 +14,12 @@ This mixin provides comprehensive monitoring for Databricks with three main pers
 
 ### Key features
 
-- **Detailed drill-down**: All metrics include detailed labels (`job_id`, `job_name`, `pipeline_id`, `pipeline_name`, `task_key`, `warehouse_id`) enabling deep analysis of specific workloads
+- **Detailed drill-down**: All metrics include detailed labels (`job_id`, `job_name`, `pipeline_id`, `pipeline_name`, `task_key`, `warehouse_id`, `tag_key`, `tag_value`) enabling deep analysis of specific workloads
 - **Multi-level views**: From high-level overview to detailed per-job/pipeline/warehouse breakdowns
 - **Metrics**: Signals covering billing, jobs, pipelines, SQL queries and SQL warehouses
 - **Alerts**: Tiered warning/critical alerts across all three personas
 - **Sparse data handling**: Queries optimized for infrequent updates and sliding window metrics
-- **Grafana variables**: Pre-configured filtering by job, workspace, and instance
+- **Grafana variables**: Pre-configured filtering by job, workspace, instance, tag key, and tag value
 
 ## Dashboards
 

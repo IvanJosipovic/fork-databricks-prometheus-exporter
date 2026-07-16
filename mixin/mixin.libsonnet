@@ -9,6 +9,7 @@ local databricks =
       filteringSelector: config.filteringSelector,
       uid: config.uid,
       enableLokiLogs: false,
+      groupLabels: config.groupLabels + ['tag_key', 'tag_value'],
     }
   );
 
@@ -37,6 +38,16 @@ local optional_labels = {
   },
   warehouse_id+: {
     label: 'Warehouse ID',
+    allValue: '.*',
+    multi: true,
+  },
+  tag_key+: {
+    label: 'Tag Key',
+    allValue: '.*',
+    multi: true,
+  },
+  tag_value+: {
+    label: 'Tag Value',
     allValue: '.*',
     multi: true,
   },
